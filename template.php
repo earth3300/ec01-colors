@@ -12,7 +12,10 @@ class ColorTemplate extends GenerateHSLColors
 {
 	/** Default options */
 	protected $opts = [
-		'max' => 240,
+		'max' => 480,
+		'group_size' => 9,
+		'use_groups' => true,
+		'row_size' => 4,
 	];
 
 	/**
@@ -25,7 +28,9 @@ class ColorTemplate extends GenerateHSLColors
 	protected function getHTMLfromHSL( $colors )
 	{
 
-		$cnt = 0;
+		$i=0;
+		$group = true;
+		$cnt = count( $colors );
 		$hue = 0;
 		$max = $this->opts['max'];
 
@@ -33,15 +38,13 @@ class ColorTemplate extends GenerateHSLColors
 		$str .= '<div class="json" style="font-size: 80%;">' . PHP_EOL;
 		$str .= '<div class="line">' . PHP_EOL;
 
+		$str .= $this->opts['use_groups'] ? '<div class="line group border shadows first">' . PHP_EOL : '';
+
 		foreach ($colors as $k => $color)
 		{
-			$cnt++;
-			if( $cnt <= $max )
+			if( $k + 1 <= $max )
 			{
-				$hue = $color['h'];
-				if ( $hue <> $color['h'] ) { $line = true; }
-				$str .= $line ? '<div class="line border">' . PHP_EOL : '';
-				$str .= '<div class="unit size1of4" style="border-radius: 3px;">' . PHP_EOL;
+				$str .= sprintf( '<div class="unit size1of3 %s" style="border-radius: 3px;">%s', $this->getRow( $k ) , PHP_EOL) ;
 				$str .= '<div class="border" style="padding: 3px;">' . PHP_EOL;
 				$str .= '<div class="inner text-center" style="min-height: 46px; padding:6px; ' . PHP_EOL;
 				$str .= sprintf( 'background: hsl(%s, %s%%, %s%%);', $color['h'], $color['s'], $color['l'] );
@@ -49,22 +52,91 @@ class ColorTemplate extends GenerateHSLColors
 				$str .= 0 ? sprintf('%s<br />%s', $color->name, PHP_EOL) : '';
 				$str .= 0 ? sprintf('%s<br />%s', $color->hexString, PHP_EOL) : '';
 				$str .= 0 ? sprintf('%s<br />%s', $this->getRGBValue( $color->rgb ), PHP_EOL) : '';
-				$str .= 1 ? sprintf('<br />%s. %s<br /><br />%s', $k, $this->getHSLValue( $color ), PHP_EOL ) : '';
+				$str .= 1 ? sprintf('<br />%s. %s<br /><br />%s', $k + 1, $this->getHSLValue( $color ), PHP_EOL ) : '';
 				$str .= 0 ? sprintf('%s%s', $this->getWavelength( $color ), PHP_EOL) : '';
 				$str .= '</div>' . PHP_EOL;
 				$str .= '</div>' . PHP_EOL;
 				$str .= '</div>' . PHP_EOL;
-				$str .= $line ? '</div>' . PHP_EOL : '';
+
+				if (  $this->opts['use_groups'] && $this->isGroup( $k ) )
+				{
+					$str .= '</div><!-- .group -->' . PHP_EOL;
+					$str .= '<div class="line border group middle">' . PHP_EOL;
+				}
+
 			}
 			else
 			{
 				break;
 			}
 		}
+		$str .= $this->opts['use_groups'] ? '</div><!-- .group .last -->' . PHP_EOL : '';
 		$str .= '</div>' . PHP_EOL;
 		$str .= '</div>' . PHP_EOL;
 		$str .= '</article>' . PHP_EOL;
 		return $str;
+	}
+
+	/**
+	 * Determine the row the unit is in.
+	 *
+	 * If this unit is one of the first set of four, it is on the top row.
+	 * If this unit is one of the second set of four, it is in a middle row.
+	 * If this unit is one of the third set of four, it is on the bottom row.
+	 *
+	 * @param int $k
+	 *
+	 * @return bool
+	 */
+	private function getRow( $k )
+	{
+		if
+		(
+			$k >= 0 && $k <  $this->opts['row_size']
+		)
+		{
+			return 'top';
+		}
+		else if
+		(
+			$k <> 0 && $k + 1 <> $this->opts['max']
+			&& is_int( ( $k + 1 ) / ( $this->opts['row_size'] ) )
+		)
+		{
+			return 'bottom';
+		}
+		else
+		{
+			return 'middle';
+		}
+	}
+
+	/**
+	 * Determine if a break for a group is needed.
+	 *
+	 * If the number plus one is evenly divisible by the group size,
+	 * it is a group break. Otherwise not.
+	 *
+	 * If it not the last one according to the max, return true;
+	 *
+	 * @param int $k
+	 *
+	 * @return bool
+	 */
+	private function isGroup( $k )
+	{
+		if
+		(
+			$k <> 0 && $k + 1 <> $this->opts['max']
+			&& is_int( ( $k + 1 ) / ( $this->opts['group_size'] ) )
+		)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	/**
