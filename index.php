@@ -12,9 +12,9 @@ class GenerateHSLColors
 		's' => [ 'min' => 0, 'max' => 100 ],
 		'l' => [ 'min' => 0, 'max' => 100 ],
 		],
-		'inc_h' => 20,
-		'inc_s' => 20,
-		'inc_l' => 16,
+		'inc_h' => 8,
+		'inc_s' => 25,
+		'inc_l' => 25,
 		];
 
 	/**
@@ -63,14 +63,14 @@ class GenerateHSLColors
 		 */
 		$i = 0;
 
-		for( $h=0; $h < 360 / $inc_h; $h++ )
+		for( $h=1; $h <= 360 / $inc_h; $h++ )
 		{
 			for( $s=1; $s < 100 / $inc_s; $s++ )
 			{
-				for( $l=1; $l < 96 / $inc_l; $l++ )
+				for( $l=1; $l < 100 / $inc_l; $l++ )
 				{
 					//variable increments
-					$colors[$i]['h'] = $h * $inc_h;
+					$colors[$i]['h'] = $h * $inc_h - 4;
 
 					//20% increments
 					$colors[$i]['s'] = $s * $inc_s;
